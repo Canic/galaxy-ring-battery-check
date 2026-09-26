@@ -4,6 +4,8 @@ A simple battery self-check for the Galaxy Ring. The app connects to a ring alre
 
 The interface follows your phone's language and is available in English and German. This is an independent project and is not an official Samsung app.
 
+**Disclaimer:** The app is provided “as is” and “as available”, without warranties of any kind. Use it at your own risk.
+
 ## Features
 
 - Start or repeat the ring's battery self-check
@@ -45,6 +47,8 @@ The check takes a few seconds. The result shows whether the ring reports normal 
 Ein einfacher Selbsttest für den Akku des Galaxy Ring. Die App verbindet sich mit einem bereits gekoppelten Ring und zeigt den gemeldeten Akkuzustand und Stromverbrauch an.
 
 Die Oberfläche richtet sich nach der Spracheinstellung des Smartphones. Dieses unabhängige Projekt ist keine offizielle Samsung-Anwendung.
+
+**Haftungshinweis:** Die App wird ohne Gewähr und „wie verfügbar“ bereitgestellt. Die Nutzung erfolgt auf eigene Verantwortung.
 
 ### Voraussetzungen
 

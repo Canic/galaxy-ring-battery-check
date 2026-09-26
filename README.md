@@ -1,67 +1,97 @@
 # Galaxy Ring Battery Check
 
-Ein einfacher Selbsttest für den Akku des Galaxy Ring. Die App verbindet sich direkt per Bluetooth mit einem bereits gekoppelten Ring und zeigt dessen Akkuzustand und Stromverbrauch an.
+A simple battery self-check for the Galaxy Ring. The app connects to a ring already paired with your phone and displays its reported battery health and current consumption.
 
-Die Oberfläche ist auf Deutsch und Englisch verfügbar und richtet sich nach der Spracheinstellung des Smartphones. Die App ist ein unabhängiges Projekt und keine offizielle Samsung-Anwendung.
+The interface follows your phone's language and is available in English and German. This is an independent project and is not an official Samsung app.
 
-## Funktionen
+## Features
 
-- Akkuselbsttest mit einer Schaltfläche starten und wiederholen
-- Akkuzustand und Stromverbrauch anzeigen
-- Verbindung, Berechtigungen und Fehler verständlich melden
-- Auf Deutsch und Englisch nutzbar
+- Start or repeat the ring's battery self-check
+- See battery health and current consumption
+- Get clear connection, permission, and error messages
+- Use the app in English or German
 
-## Voraussetzungen
+## Requirements
 
-- Ein Galaxy Ring, der bereits mit dem Smartphone gekoppelt ist
-- Bluetooth eingeschaltet und der Ring in der Nähe
+- A Galaxy Ring paired with your phone
+- Bluetooth enabled and the ring nearby
+- Android 12 or later
+- Nearby devices permission
+
+Root access and Samsung Members are not required.
+
+## Download
+
+A new APK is built and published only when a version tag such as `v1.0.0` is pushed. Download it from the [GitHub Releases page](https://github.com/Canic/galaxy-ring-battery-check/releases). Regular pushes and pull requests do not publish a release.
+
+The download is a debug APK. Android may ask you to uninstall a locally built copy before installing it.
+
+## Run a battery check
+
+1. Pair your Galaxy Ring in your phone's Bluetooth settings.
+2. Open **Ring Battery Check** or **Ring-Akkucheck**.
+3. Grant Nearby devices permission when asked.
+4. Tap **Start test** or **Test starten** and keep the ring nearby.
+
+The check takes a few seconds. The result shows whether the ring reports normal battery health and current consumption. The ring also returns a capacity value without a unit, so the app does not present it as a charge percentage.
+
+## Deutsche Version
+
+<details>
+<summary>Deutsch</summary>
+
+### Galaxy Ring Akkucheck
+
+Ein einfacher Selbsttest für den Akku des Galaxy Ring. Die App verbindet sich mit einem bereits gekoppelten Ring und zeigt den gemeldeten Akkuzustand und Stromverbrauch an.
+
+Die Oberfläche richtet sich nach der Spracheinstellung des Smartphones. Dieses unabhängige Projekt ist keine offizielle Samsung-Anwendung.
+
+### Voraussetzungen
+
+- Ein Galaxy Ring, der mit dem Smartphone gekoppelt ist
+- Bluetooth ist eingeschaltet und der Ring in der Nähe
 - Android 12 oder neuer
 - Berechtigung für Geräte in der Nähe
 
 Root-Zugriff und Samsung Members werden nicht benötigt.
 
-## App herunterladen
+### Herunterladen und verwenden
 
-Eine neue Version wird nur gebaut und veröffentlicht, wenn ein Versions-Tag wie `v1.0.0` gepusht wird. Die fertige APK findest du dann auf der [Releases-Seite](https://github.com/Canic/galaxy-ring-battery-check/releases). Normale Pushes und Pull Requests lösen keine Veröffentlichung aus.
+Eine neue APK wird nur bei einem Versions-Tag wie `v1.0.0` erstellt und veröffentlicht. Du findest sie auf der [GitHub-Releases-Seite](https://github.com/Canic/galaxy-ring-battery-check/releases). Normale Pushes und Pull Requests veröffentlichen keine neue Version.
 
-Es handelt sich um eine Debug-APK. Android kann beim Installieren eines neuen Builds verlangen, eine bereits installierte lokal gebaute Version dieser App zuerst zu deinstallieren.
+Kopple den Ring in den Bluetooth-Einstellungen, öffne **Ring-Akkucheck**, erlaube beim ersten Start den Zugriff auf Geräte in der Nähe und tippe auf **Test starten**. Halte den Ring dabei in der Nähe. Der Test dauert einige Sekunden.
 
-## Selbsttest durchführen
+Die APK ist ein Debug-Build. Android kann verlangen, eine lokal gebaute Version der App vor der Installation zu deinstallieren.
 
-1. Kopple den Galaxy Ring in den Bluetooth-Einstellungen des Smartphones.
-2. Öffne **Ring Battery Check** beziehungsweise **Ring-Akkucheck**.
-3. Erlaube beim ersten Start den Zugriff auf Geräte in der Nähe.
-4. Tippe auf **Start test** beziehungsweise **Test starten** und halte den Ring in der Nähe.
+</details>
 
-Der Test dauert einige Sekunden. Das Ergebnis zeigt, ob der gemeldete Akkuzustand und Stromverbrauch normal sind. Der Ring liefert außerdem einen Kapazitätswert, aber keine Einheit dafür. Die App zeigt diesen deshalb nicht als Ladezustand in Prozent an.
+## Development
 
-## Entwicklung
-
-Der Android-Build wird über [GitHub Actions](.github/workflows/build-apk.yml) erstellt. Eine Version wird durch einen Tag im Format `v<Major>.<Minor>.<Patch>` ausgelöst, zum Beispiel `v1.0.1`. Für einen lokalen Build steht `build.sh` bereit; es verwendet die Android-Werkzeuge aus `../.tools/android`.
+GitHub Actions builds and publishes the APK from [version tags](.github/workflows/build-apk.yml). Create tags in the `v<Major>.<Minor>.<Patch>` format, for example `v1.0.1`. For a local build, `build.sh` uses the Android tools in `../.tools/android`.
 
 <details>
-<summary>Technische Hintergründe und Rohdaten</summary>
+<summary>Protocol notes and raw diagnostic data / Protokollnotizen und Rohdaten</summary>
 
-### Ergebnis des getesteten Rings
-
-Der Ring antwortete mit:
+### Tested ring response / Antwort des getesteten Rings
 
 ```text
 21 21 45 06 01 07 00 08 04 31 39 2E 35
 ```
 
-| Feld | Wert | Interpretation des Samsung-Codes |
+| Field / Feld | Value / Wert | Samsung code interpretation / Interpretation |
 | --- | --- | --- |
-| Batteriezustand (6) | 1 | Maßnahme erforderlich |
-| Stromverbrauch (7) | 0 | Normal |
-| Kapazitätswert (8) | 19.5 | Einheit nicht angegeben |
+| Battery health / Batteriezustand (6) | 1 | Attention required / Maßnahme erforderlich |
+| Current consumption / Stromverbrauch (7) | 0 | Normal |
+| Capacity value / Kapazitätswert (8) | 19.5 | Unit not provided / Einheit nicht angegeben |
 
-Der Kapazitätswert `19.5` ist kein Ladeprozentsatz. Seine Einheit lässt sich aus der Antwort nicht sicher bestimmen.
+The value `19.5` is not a charge percentage; its unit cannot be determined from the response. / Der Wert `19.5` ist kein Ladeprozentsatz; seine Einheit lässt sich aus der Antwort nicht sicher bestimmen.
 
-### Protokollnotizen
+### Protocol / Protokoll
 
-Die App setzt den vom Galaxy Ring Manager verwendeten `batteryStatus`-Diagnosebefehl (Nachrichten-ID 5) direkt über Bluetooth LE um. Nach der Verbindung und dem Abonnieren der Benachrichtigungen auf dem Samsung-Datendienst beantwortet der Ring bei einer frischen Verbindung einen 167-Byte-Handshake. Anschließend sendet die App `21 21 05` an die RX-Charakteristik. Die ersten beiden Bytes sind Quell- und Zielkanal `0x21`; `05` enthält Format 0, Typ 0 und die Akku-Test-ID 5. Die Antwort enthält denselben Kanal und die Nachrichten-ID 5 mit Antwort-Typ 1 (`45`).
+The app implements the `batteryStatus` diagnostic command (message ID 5) used by the inspected Galaxy Ring Manager, sent directly over Bluetooth LE. After connecting and subscribing to notifications on the Samsung data service, the ring sends a 167-byte handshake on a fresh connection. The app then writes `21 21 05` to the RX characteristic. The first two bytes are source and destination channel `0x21`; `05` encodes format 0, type 0, and battery test ID 5. The response uses the same channel and message ID 5 with response type 1 (`45`).
 
-Der Test wurde auf einem Pixel 9 mit und ohne laufenden Galaxy Ring Manager durchgeführt.
+Die App setzt den `batteryStatus`-Diagnosebefehl (Nachrichten-ID 5) des untersuchten Galaxy Ring Managers direkt über Bluetooth LE um. Nach dem Verbinden und Abonnieren der Benachrichtigungen auf dem Samsung-Datendienst sendet der Ring bei einer frischen Verbindung einen 167-Byte-Handshake. Danach schreibt die App `21 21 05` an die RX-Charakteristik. Die ersten beiden Bytes sind Quell- und Zielkanal `0x21`; `05` codiert Format 0, Typ 0 und Akku-Test-ID 5. Die Antwort enthält denselben Kanal und die Nachrichten-ID 5 mit Antwort-Typ 1 (`45`).
+
+The test was run on a Pixel 9, both with and without Galaxy Ring Manager running. / Der Test lief auf einem Pixel 9 mit und ohne laufenden Galaxy Ring Manager.
 
 </details>

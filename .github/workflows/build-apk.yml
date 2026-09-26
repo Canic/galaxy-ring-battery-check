@@ -32,7 +32,7 @@ jobs:
           gradle-version: '8.9'
 
       - name: Build APK
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon assembleDebug -PappVersionCode=${{ github.run_number }} -PappVersionName=${{ github.ref_name }}
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2

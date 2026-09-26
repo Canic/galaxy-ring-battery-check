@@ -16,7 +16,7 @@
     <string name="progress_detail">Lass den Ring in der Nähe. Der Test kann einige Sekunden dauern.</string>
     <string name="attention_title">Handlungsbedarf</string>
     <string name="normal_title">Alle Prüfungen bestanden</string>
-    <string name="attention_detail">Der Ring meldet, dass der Akkuzustand Aufmerksamkeit erfordert.</string>
+    <string name="attention_detail">Der Ring meldet ein Problem beim Akkuzustand oder Stromverbrauch.</string>
     <string name="normal_detail">Der Ring meldet einen normalen Akkuzustand und Stromverbrauch.</string>
     <string name="details_title">Akkuwerte</string>
     <string name="health_label">Akkuzustand</string>
@@ -41,4 +41,8 @@
     <string name="test_error_detail">Der Ring hat kein vollständiges Akku-Ergebnis gesendet. Bitte versuche es erneut.</string>
     <string name="device_label">Gekoppeltes Gerät</string>
     <string name="device_unknown">Galaxy Ring</string>
+    <string name="battery_level_label">Aktueller Ladestand</string>
+    <string name="battery_unavailable">Nicht verfügbar</string>
+    <string name="battery_percentage">%1$d%%</string>
+    <string name="battery_unknown_symbol">–</string>
 </resources>

@@ -16,7 +16,7 @@
     <string name="progress_detail">Keep the ring nearby. This may take a few seconds.</string>
     <string name="attention_title">Attention needed</string>
     <string name="normal_title">All checks passed</string>
-    <string name="attention_detail">The ring reports that battery health needs attention.</string>
+    <string name="attention_detail">The ring reports an issue with battery health or current consumption.</string>
     <string name="normal_detail">The ring reports normal battery health and current consumption.</string>
     <string name="details_title">Battery details</string>
     <string name="health_label">Battery health</string>
@@ -41,4 +41,8 @@
     <string name="test_error_detail">The ring did not return a complete battery result. Please try again.</string>
     <string name="device_label">Paired device</string>
     <string name="device_unknown">Galaxy Ring</string>
+    <string name="battery_level_label">Current charge</string>
+    <string name="battery_unavailable">Not available</string>
+    <string name="battery_percentage">%1$d%%</string>
+    <string name="battery_unknown_symbol">–</string>
 </resources>

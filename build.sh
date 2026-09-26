@@ -5,9 +5,12 @@ sdk=.tools/android/usr/lib/android-sdk
 build=ring-battery-test/build
 rm -rf "$build/classes" "$build/gen"
 mkdir -p "$build/classes" "$build/gen"
+sed -e 's/<manifest /<manifest package="dev.galaxydiagnostic.ringbattery" /' \
+    -e 's/<application /<uses-sdk android:minSdkVersion="31" android:targetSdkVersion="35"\/><application /' \
+  ring-battery-test/AndroidManifest.xml > "$build/AndroidManifest.xml"
 LD_LIBRARY_PATH="$PWD/.tools/android/usr/lib/x86_64-linux-gnu/android:/usr/lib/x86_64-linux-gnu/android" \
   "$sdk/build-tools/debian/aapt" package -f -m \
-  -M ring-battery-test/AndroidManifest.xml \
+  -M "$build/AndroidManifest.xml" \
   -S ring-battery-test/res \
   -I "$sdk/platforms/android-23/android.jar" \
   -J "$build/gen" -F "$build/unsigned.apk"

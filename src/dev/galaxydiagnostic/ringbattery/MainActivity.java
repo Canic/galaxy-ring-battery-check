@@ -15,6 +15,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -28,6 +30,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -51,7 +54,8 @@ public class MainActivity extends Activity {
     private static final int RED = Color.rgb(185, 28, 28);
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private TextView statusTitle, statusDetail, deviceName;
+    private TextView statusTitle, statusDetail, deviceName, batteryValue;
+    private BatteryRingView batteryRing;
     private TextView healthValue, consumptionValue, capacityValue;
     private View statusDot;
     private LinearLayout resultCard;
@@ -59,7 +63,7 @@ public class MainActivity extends Activity {
     private Button startButton;
     private volatile BluetoothGatt gatt;
     private volatile BluetoothGattCharacteristic writeCharacteristic;
-    private volatile boolean busy, testSent, handshakeSeen;
+    private volatile boolean busy, testSent, batteryRequestSent, batteryReceived;
     private boolean servicesStarted, permissionPermanentlyDenied;
     private Runnable timeout;
 
@@ -124,6 +128,34 @@ public class MainActivity extends Activity {
         value.setGravity(Gravity.END);
         row.addView(value, new LinearLayout.LayoutParams(-2, -2));
         return value;
+    }
+
+    private class BatteryRingView extends View {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private int level = -1;
+
+        BatteryRingView() { super(MainActivity.this); }
+
+        void setLevel(int value) {
+            level = value;
+            invalidate();
+        }
+
+        @Override protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            float stroke = dp(7);
+            float inset = stroke / 2 + dp(2);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(stroke);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setColor(Color.rgb(226, 232, 240));
+            canvas.drawCircle(getWidth() / 2f, getHeight() / 2f, (getWidth() - 2 * inset) / 2f, paint);
+            if (level >= 0) {
+                paint.setColor(level <= 15 ? AMBER : BLUE);
+                canvas.drawArc(inset, inset, getWidth() - inset, getHeight() - inset,
+                        -90, 360f * level / 100, false, paint);
+            }
+        }
     }
 
     private void buildScreen() {
@@ -208,6 +240,30 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams deviceParams = new LinearLayout.LayoutParams(-1, -2);
         deviceParams.topMargin = dp(4);
         deviceCard.addView(deviceName, deviceParams);
+        LinearLayout batteryRow = new LinearLayout(this);
+        batteryRow.setOrientation(LinearLayout.HORIZONTAL);
+        batteryRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams batteryParams = new LinearLayout.LayoutParams(-1, -2);
+        batteryParams.topMargin = dp(20);
+        deviceCard.addView(batteryRow, batteryParams);
+        LinearLayout batteryText = new LinearLayout(this);
+        batteryText.setOrientation(LinearLayout.VERTICAL);
+        batteryRow.addView(batteryText, new LinearLayout.LayoutParams(0, -2, 1f));
+        batteryText.addView(text(R.string.battery_level_label, 13, MUTED, false));
+        batteryValue = text(R.string.battery_unavailable, 16, MUTED, true);
+        LinearLayout.LayoutParams batteryValueParams = new LinearLayout.LayoutParams(-1, -2);
+        batteryValueParams.topMargin = dp(4);
+        batteryText.addView(batteryValue, batteryValueParams);
+        batteryRing = new BatteryRingView();
+        LinearLayout.LayoutParams ringParams = new LinearLayout.LayoutParams(dp(76), dp(76));
+        ringParams.leftMargin = dp(12);
+        TextView ringCenter = text(R.string.battery_unknown_symbol, 18, MUTED, true);
+        ringCenter.setGravity(Gravity.CENTER);
+        FrameLayout ringFrame = new FrameLayout(this);
+        ringFrame.addView(batteryRing, new FrameLayout.LayoutParams(-1, -1));
+        ringFrame.addView(ringCenter, new FrameLayout.LayoutParams(-1, -1));
+        batteryRow.addView(ringFrame, ringParams);
+        batteryRing.setTag(ringCenter);
 
         resultCard = card();
         content.addView(resultCard, cardParams(16));
@@ -284,9 +340,16 @@ public class MainActivity extends Activity {
         }
         closeGatt();
         testSent = false;
-        handshakeSeen = false;
+        batteryRequestSent = false;
+        batteryReceived = false;
         servicesStarted = false;
         resultCard.setVisibility(View.GONE);
+        batteryValue.setText(R.string.battery_unavailable);
+        batteryValue.setTextColor(MUTED);
+        batteryRing.setLevel(-1);
+        TextView ringCenter = (TextView) batteryRing.getTag();
+        ringCenter.setText(R.string.battery_unknown_symbol);
+        ringCenter.setTextColor(MUTED);
         BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter adapter = manager == null ? null : manager.getAdapter();
         if (adapter == null || !adapter.isEnabled()) {
@@ -428,7 +491,7 @@ public class MainActivity extends Activity {
             // An existing shared connection may have already completed the handshake.
             handler.postDelayed(new Runnable() {
                 @Override public void run() {
-                    if (busy && current == gatt && !handshakeSeen && !testSent) sendBatteryTest(current);
+                    if (busy && current == gatt && !batteryRequestSent) sendBatteryRequest(current);
                 }
             }, 5000);
         }
@@ -440,15 +503,19 @@ public class MainActivity extends Activity {
                 return;
             }
             byte[] value = characteristic.getValue();
-            if (value != null && value.length == 167 && (value[0] & 255) == 0xa7) sendBatteryTest(current);
+            if (value != null && value.length == 167 && (value[0] & 255) == 0xa7) sendBatteryRequest(current);
         }
 
         @Override public void onCharacteristicChanged(BluetoothGatt current, BluetoothGattCharacteristic characteristic) {
             if (current != gatt || !busy) return;
             byte[] value = characteristic.getValue();
             if (value != null && value.length == 167 && (value[0] & 255) == 0xa7 && !testSent) {
-                handshakeSeen = true;
                 sendHandshake(current);
+            } else if (value != null && value.length >= 3 &&
+                    (value[0] & 255) == 0x0b && (value[1] & 255) == 0x0b &&
+                    (value[2] & 0x3f) == 0x02) {
+                decodeBatteryLevel(current, value);
+                sendBatteryTest(current);
             } else if (value != null && value.length >= 3 &&
                     (value[0] & 255) == 0x21 && (value[1] & 255) == 0x21 &&
                     (value[2] & 0x7f) == 0x45) {
@@ -487,6 +554,61 @@ public class MainActivity extends Activity {
         if (!current.writeCharacteristic(characteristic)) {
             fail(current, R.string.connection_error_title, R.string.connection_error_detail);
         }
+    }
+
+    private void sendBatteryRequest(final BluetoothGatt current) {
+        BluetoothGattCharacteristic characteristic = writeCharacteristic;
+        if (!busy || current != gatt || batteryRequestSent || characteristic == null) return;
+        batteryRequestSent = true;
+        characteristic.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+        characteristic.setValue(new byte[]{0x0b, 0x0b, 0x02});
+        if (!current.writeCharacteristic(characteristic)) {
+            Log.w(TAG, "Battery level request could not be sent");
+        }
+        handler.postDelayed(new Runnable() {
+            @Override public void run() {
+                if (busy && current == gatt && !batteryReceived && !testSent) {
+                    BluetoothGattCharacteristic batteryWrite = writeCharacteristic;
+                    if (batteryWrite != null) {
+                        batteryWrite.setValue(new byte[]{0x0b, 0x0b, 0x03});
+                        if (!current.writeCharacteristic(batteryWrite)) {
+                            Log.w(TAG, "Battery level fallback request could not be sent");
+                        }
+                    }
+                }
+            }
+        }, 1000);
+        handler.postDelayed(new Runnable() {
+            @Override public void run() {
+                if (busy && current == gatt) sendBatteryTest(current);
+            }
+        }, 3000);
+    }
+
+    private void decodeBatteryLevel(final BluetoothGatt current, byte[] data) {
+        for (int pos = 3; pos + 1 < data.length; pos += 2) {
+            if ((data[pos] & 255) != 5) continue;
+            final int level = data[pos + 1] & 255;
+            if (level > 100) return;
+            batteryReceived = true;
+            showBatteryLevel(current, level);
+            return;
+        }
+    }
+
+    private void showBatteryLevel(final BluetoothGatt current, final int level) {
+        if (level > 100) return;
+        handler.post(new Runnable() {
+            @Override public void run() {
+                if (!busy || current != gatt) return;
+                batteryValue.setText(getString(R.string.battery_percentage, level));
+                batteryValue.setTextColor(level <= 15 ? AMBER : INK);
+                batteryRing.setLevel(level);
+                TextView ringCenter = (TextView) batteryRing.getTag();
+                ringCenter.setText(getString(R.string.battery_percentage, level));
+                ringCenter.setTextColor(level <= 15 ? AMBER : INK);
+            }
+        });
     }
 
     private void sendBatteryTest(BluetoothGatt current) {

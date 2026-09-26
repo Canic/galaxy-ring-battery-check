@@ -10,8 +10,8 @@ android {
         applicationId 'dev.galaxydiagnostic.ringbattery'
         minSdk 31
         targetSdk 35
-        versionCode 1
-        versionName '1.0'
+        versionCode (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+        versionName System.getenv('GITHUB_REF_NAME')?.replaceFirst('^v', '') ?: '1.0.0'
     }
 
     sourceSets {

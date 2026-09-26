@@ -1,12 +1,12 @@
-name: Build Android APK
+name: Release Android APK
 
 on:
   push:
-  pull_request:
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -31,13 +31,12 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build debug APK
+      - name: Build APK
         run: gradle --no-daemon assembleDebug
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
         with:
-          name: ring-battery-check-${{ github.sha }}
-          path: build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
+          name: Ring Battery Check ${{ github.ref_name }}
+          generate_release_notes: true
+          files: build/outputs/apk/debug/*.apk

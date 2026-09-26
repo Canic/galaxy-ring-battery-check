@@ -1,0 +1,24 @@
+plugins {
+    id 'com.android.application' version '8.6.1'
+}
+
+android {
+    namespace 'dev.galaxydiagnostic.ringbattery'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'dev.galaxydiagnostic.ringbattery'
+        minSdk 31
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+        }
+    }
+}

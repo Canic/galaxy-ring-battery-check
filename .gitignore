@@ -1,0 +1,14 @@
+# Android build output and local signing keys
+/build/
+*.apk
+*.aab
+*.apks
+*.idsig
+*.keystore
+*.jks
+
+# IDE and OS files
+/.idea/
+*.iml
+.DS_Store
+Thumbs.db
